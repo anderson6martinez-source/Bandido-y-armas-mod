@@ -1,11 +1,11 @@
 
-name: Build Survivalcraft Mod
+name: Build Bandido Mod
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [main, master]
   pull_request:
-    branches: [ main, master ]
+    branches: [main, master]
   workflow_dispatch:
 
 jobs:
@@ -16,9 +16,32 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup MSBuild
-        uses: microsoft/setup-msbuild@v2
+      - name: Install .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
 
-      - name: Build
-        run: msbuild BandidoMod.csproj /p:Configuration=Release
-        
+      - name: Check project
+        shell: pwsh
+        run: |
+          Write-Host "Checking project..."
+          Get-ChildItem -Recurse -File |
+            Select-Object -ExpandProperty FullName
+
+          if (!(Test-Path "./BandidoMod.csproj")) {
+            throw "BandidoMod.csproj not found"
+          }
+
+      - name: Restore
+        run: dotnet restore BandidoMod.csproj
+
+      - name: Compile
+        run: dotnet build BandidoMod.csproj --configuration Release --no-restore
+
+      - name: Upload SCMod
+        uses: actions/upload-artifact@v4
+        with:
+          name: Bandido24
+          path: dist/Bandido24.scmod
+          if-no-files-found: error
+          
