@@ -1,0 +1,11 @@
+{
+  "Name": "Bandido 2.4",
+  "Version": "1.1.0",
+  "ApiVersion": "1.8",
+  "Description": "Bandido con pistola 9mm y balas.",
+  "ScVersion": "2.4",
+  "Link": "",
+  "Author": "",
+  "PackageName": "Bandido24",
+  "Dependencies": []
+}
