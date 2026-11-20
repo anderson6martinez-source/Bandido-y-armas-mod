@@ -10,15 +10,15 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
 
     steps:
-      - name: Descargar repositorio
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Instalar MSBuild
+      - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v2
 
-      - name: Compilar proyecto
+      - name: Build
         run: msbuild BandidoMod.csproj /p:Configuration=Release
         
