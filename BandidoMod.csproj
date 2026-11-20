@@ -1,0 +1,48 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <AssemblyName>BandidoMod</AssemblyName>
+    <RootNamespace>Game</RootNamespace>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <EnableDefaultItems>false</EnableDefaultItems>
+    <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
+    <NoWarn>$(NoWarn);MSB3270</NoWarn>
+  </PropertyGroup>
+
+  <!-- Solo se compila lo que hay en Code\ -->
+  <ItemGroup>
+    <Compile Include="Code\**\*.cs" />
+  </ItemGroup>
+
+  <!-- DLL del juego 2.4: copialas a la carpeta lib\ (Private=false: no se copian al resultado) -->
+  <ItemGroup>
+    <Reference Include="lib\Engine24.dll"><Private>false</Private></Reference>
+    <Reference Include="lib\EntitySystem24.dll"><Private>false</Private></Reference>
+    <Reference Include="lib\Survivalcraft24.dll"><Private>false</Private></Reference>
+  </ItemGroup>
+
+  <!-- Despues de compilar: arma dist\Bandido24.scmod con Mod\ + BandidoMod.dll -->
+  <Target Name="EmpaquetarMod" AfterTargets="Build">
+    <PropertyGroup>
+      <StageDir>$(MSBuildProjectDirectory)\obj\stage\</StageDir>
+      <DistDir>$(MSBuildProjectDirectory)\dist\</DistDir>
+      <ScmodPath>$(DistDir)Bandido24.scmod</ScmodPath>
+    </PropertyGroup>
+    <ItemGroup>
+      <ModFiles Include="Mod\**\*" />
+    </ItemGroup>
+    <RemoveDir Directories="$(StageDir)" />
+    <Copy SourceFiles="@(ModFiles)" DestinationFiles="@(ModFiles->'$(StageDir)%(RecursiveDir)%(Filename)%(Extension)')" />
+    <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(StageDir)" />
+    <MakeDir Directories="$(DistDir)" />
+    <Delete Files="$(ScmodPath)" />
+    <ZipDirectory SourceDirectory="$(StageDir)" DestinationFile="$(ScmodPath)" />
+    <Message Importance="high" Text="Mod listo: $(ScmodPath)" />
+  </Target>
+
+</Project>
