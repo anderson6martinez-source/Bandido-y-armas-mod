@@ -14,32 +14,56 @@
     <NoWarn>$(NoWarn);MSB3270</NoWarn>
   </PropertyGroup>
 
-  <!-- Solo se compila lo que hay en Code\ -->
+  <!-- TODO en la RAIZ: se compilan todos los .cs que esten junto a este csproj -->
   <ItemGroup>
-    <Compile Include="Code\**\*.cs" />
+    <Compile Include="*.cs" />
   </ItemGroup>
 
-  <!-- DLL del juego 2.4: copialas a la carpeta lib\ (Private=false: no se copian al resultado) -->
+  <!-- DLL del juego 2.4: ponelas en la RAIZ, junto a este csproj (si no estan, prueba en lib/) -->
   <ItemGroup>
-    <Reference Include="lib\Engine24.dll"><Private>false</Private></Reference>
-    <Reference Include="lib\EntitySystem24.dll"><Private>false</Private></Reference>
-    <Reference Include="lib\Survivalcraft24.dll"><Private>false</Private></Reference>
+    <Reference Include="Engine24.dll" Condition="Exists('Engine24.dll')"><Private>false</Private></Reference>
+    <Reference Include="EntitySystem24.dll" Condition="Exists('EntitySystem24.dll')"><Private>false</Private></Reference>
+    <Reference Include="Survivalcraft24.dll" Condition="Exists('Survivalcraft24.dll')"><Private>false</Private></Reference>
+    <Reference Include="lib/Engine24.dll" Condition="!Exists('Engine24.dll') And Exists('lib/Engine24.dll')"><Private>false</Private></Reference>
+    <Reference Include="lib/EntitySystem24.dll" Condition="!Exists('EntitySystem24.dll') And Exists('lib/EntitySystem24.dll')"><Private>false</Private></Reference>
+    <Reference Include="lib/Survivalcraft24.dll" Condition="!Exists('Survivalcraft24.dll') And Exists('lib/Survivalcraft24.dll')"><Private>false</Private></Reference>
+    <Reference Include="Lib/Engine24.dll" Condition="!Exists('Engine24.dll') And !Exists('lib/Engine24.dll') And Exists('Lib/Engine24.dll')"><Private>false</Private></Reference>
+    <Reference Include="Lib/EntitySystem24.dll" Condition="!Exists('EntitySystem24.dll') And !Exists('lib/EntitySystem24.dll') And Exists('Lib/EntitySystem24.dll')"><Private>false</Private></Reference>
+    <Reference Include="Lib/Survivalcraft24.dll" Condition="!Exists('Survivalcraft24.dll') And !Exists('lib/Survivalcraft24.dll') And Exists('Lib/Survivalcraft24.dll')"><Private>false</Private></Reference>
   </ItemGroup>
 
-  <!-- Despues de compilar: arma dist\Bandido24.scmod con Mod\ + BandidoMod.dll -->
+  <!-- Despues de compilar: deja Bandido24.scmod en la RAIZ con los archivos de la raiz acomodados en sus carpetas -->
   <Target Name="EmpaquetarMod" AfterTargets="Build">
     <PropertyGroup>
-      <StageDir>$(MSBuildProjectDirectory)\obj\stage\</StageDir>
-      <DistDir>$(MSBuildProjectDirectory)\dist\</DistDir>
+      <StageDir>$(MSBuildProjectDirectory)/obj/stage/</StageDir>
+      <DistDir>$(MSBuildProjectDirectory)/</DistDir>
       <ScmodPath>$(DistDir)Bandido24.scmod</ScmodPath>
     </PropertyGroup>
+
     <ItemGroup>
-      <ModFiles Include="Mod\**\*" />
+      <!-- raiz del scmod -->
+      <ModRaiz Include="modinfo.json" />
+      <ModRaiz Include="*.xdb" />
+      <!-- Models/ -->
+      <ModModelos Include="*.dae" />
+      <!-- Textures/Items/ -->
+      <ModItems Include="Pistola9mm.png" Condition="Exists('Pistola9mm.png')" />
+      <ModItems Include="Bala9mm.png" Condition="Exists('Bala9mm.png')" />
+      <!-- Textures/Creatures/ (la skin del bandido) -->
+      <ModCriaturas Include="Bandido.png" Condition="Exists('Bandido.png')" />
+      <!-- Audio/Creatures/ -->
+      <ModAudio Include="*.wav" />
     </ItemGroup>
+
     <RemoveDir Directories="$(StageDir)" />
-    <Copy SourceFiles="@(ModFiles)" DestinationFiles="@(ModFiles->'$(StageDir)%(RecursiveDir)%(Filename)%(Extension)')" />
-    <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(StageDir)" />
-    <MakeDir Directories="$(DistDir)" />
+    <MakeDir Directories="$(StageDir)" />
+    <Copy SourceFiles="@(ModRaiz)"      DestinationFolder="$(StageDir)" />
+    <Copy SourceFiles="@(ModModelos)"   DestinationFolder="$(StageDir)Models/" />
+    <Copy SourceFiles="@(ModItems)"     DestinationFolder="$(StageDir)Textures/Items/" />
+    <Copy SourceFiles="@(ModCriaturas)" DestinationFolder="$(StageDir)Textures/Creatures/" />
+    <Copy SourceFiles="@(ModAudio)"     DestinationFolder="$(StageDir)Audio/Creatures/" />
+    <Copy SourceFiles="$(TargetPath)"   DestinationFolder="$(StageDir)" />
+
     <Delete Files="$(ScmodPath)" />
     <ZipDirectory SourceDirectory="$(StageDir)" DestinationFile="$(ScmodPath)" />
     <Message Importance="high" Text="Mod listo: $(ScmodPath)" />
